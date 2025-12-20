@@ -272,24 +272,53 @@ def save_rgb_image(rgb_image, filename, bit_depth=10):
     print(f"Saved: {filename}")
 
 def main():
-    """Main test function for real RAW data."""
+    """
+    Main test function for real RAW data.
+    
+    This function processes RAW10 sensor data files from the data/ directory.
+    
+    Expected Directory Structure:
+        AutoWhiteBalance/
+        ├── data/                          # RAW files stored here
+        │   └── *.raw                     # RAW10 sensor data files
+        ├── tests/
+        │   └── test_real_data.py         # This script
+        └── results/
+            └── awb_real_data_results/    # Output saved here
+    
+    The script will:
+    1. Look for RAW files in data/ directory
+    2. Process the newest RAW file found
+    3. Apply AWB correction
+    4. Save results to results/awb_real_data_results/
+    """
     print("=" * 70)
     print("AUTO WHITE BALANCE SYSTEM - REAL DATA TEST")
     print("=" * 70)
     
     # Find all RAW files in data directory
-    script_dir = os.path.dirname(__file__)
-    data_dir = os.path.join(script_dir, '..', 'data')
+    # Path structure: AutoWhiteBalance/tests/test_real_data.py -> AutoWhiteBalance/data/
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)  # Go up from tests/ to project root
+    data_dir = os.path.join(project_root, 'data')
     data_dir = os.path.abspath(data_dir)
+    
+    print(f"\nLooking for RAW files in: {data_dir}")
     
     if not os.path.exists(data_dir):
         print(f"ERROR: Data directory not found: {data_dir}")
+        print(f"Please create the data/ directory and place RAW files there")
+        return
+    
+    if not os.path.isdir(data_dir):
+        print(f"ERROR: {data_dir} exists but is not a directory")
         return
     
     raw_files = [f for f in os.listdir(data_dir) if f.endswith('.raw')]
     
     if not raw_files:
-        print(f"ERROR: No RAW files found in {current_dir}")
+        print(f"ERROR: No RAW files found in {data_dir}")
+        print(f"Please ensure RAW files are placed in the data/ directory")
         return
     
     # Sort by modification time (newest first)
@@ -402,9 +431,9 @@ def main():
     print("Debayering corrected image...")
     corrected_rgb = debayer_image(corrected_raw, pattern='RGGB')
     
-    # Save results
-    script_dir = os.path.dirname(__file__)
-    output_dir = os.path.join(script_dir, '..', 'results', 'awb_real_data_results')
+    # Save results to results directory
+    # Path structure: AutoWhiteBalance/tests/ -> AutoWhiteBalance/results/awb_real_data_results/
+    output_dir = os.path.join(project_root, 'results', 'awb_real_data_results')
     output_dir = os.path.abspath(output_dir)
     os.makedirs(output_dir, exist_ok=True)
     
