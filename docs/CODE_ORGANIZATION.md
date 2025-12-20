@@ -4,40 +4,58 @@ This document explains how the codebase is organized for easy understanding and 
 
 ## 📁 Directory Structure
 
+**Important:** The virtual environment should be located one directory above this project:
+
 ```
-AutoWhiteBalance/
-│
-├── README.md                    # Main entry point - start here!
-│
-├── src/                         # Core Implementation
-│   └── awb_system.py           # Complete AWB system (production code)
-│
-├── examples/                    # Example Scripts
-│   ├── basic_usage.py          # Simple AWB example (beginner-friendly)
-│   ├── run.sh                  # Easy execution script
-│   └── setup_venv.sh           # Virtual environment setup
-│
-├── tests/                       # Test Scripts
-│   └── test_real_data.py       # Real RAW sensor data testing
-│
-├── data/                        # Test Data
-│   └── *.raw                   # RAW10 sensor data files
-│
-├── docs/                        # Documentation
-│   ├── INTRODUCTION.md         # What is white balance? (concepts)
-│   ├── GETTING_STARTED.md      # Quick start guide
-│   ├── TUTORIAL.md             # Step-by-step tutorial
-│   ├── ALGORITHMS.md           # Algorithm explanations
-│   ├── API_REFERENCE.md        # Complete API documentation
-│   ├── CODE_ORGANIZATION.md    # This file
-│   ├── USAGE.md                # Usage examples
-│   └── TEST_RESULTS.md         # Test results and analysis
-│
-├── results/                     # Output Results
-│   ├── basic_example/          # Basic example outputs
-│   └── awb_real_data_results/  # Real data test outputs
-│
-└── requirements.txt            # Python dependencies
+Mobile_Computational_photograph/
+├── virtual_env/                 # Virtual environment (create here)
+│   ├── bin/
+│   ├── lib/
+│   └── ...
+└── AutoWhiteBalance/            # This project
+    │
+    ├── README.md                # Main entry point - start here!
+    │
+    ├── src/                     # Core Implementation
+    │   └── awb_system.py       # Complete AWB system (production code)
+    │
+    ├── examples/                # Example Scripts
+    │   ├── basic_usage.py      # Simple AWB example (beginner-friendly)
+    │   ├── run.sh              # Easy execution script (auto-activates venv)
+    │   └── setup_venv.sh       # Virtual environment setup script
+    │
+    ├── tests/                   # Test Scripts
+    │   └── test_real_data.py   # Real RAW sensor data testing
+    │
+    ├── data/                    # Test Data
+    │   └── *.raw               # RAW10 sensor data files
+    │
+    ├── docs/                    # Documentation
+    │   ├── INTRODUCTION.md     # What is white balance? (concepts)
+    │   ├── GETTING_STARTED.md  # Quick start guide
+    │   ├── TUTORIAL.md         # Step-by-step tutorial
+    │   ├── ALGORITHMS.md       # Algorithm explanations
+    │   ├── API_REFERENCE.md    # Complete API documentation
+    │   ├── CODE_ORGANIZATION.md # This file
+    │   ├── USAGE.md            # Usage examples
+    │   └── TEST_RESULTS.md     # Test results and analysis
+    │
+    ├── results/                 # Output Results
+    │   ├── basic_example/      # Basic example outputs
+    │   └── awb_real_data_results/ # Real data test outputs
+    │
+    └── requirements.txt         # Python dependencies
+```
+
+**Virtual Environment Setup:**
+```bash
+# Create virtual environment in parent directory
+cd ..
+python3 -m venv virtual_env
+
+# Or use the setup script
+cd AutoWhiteBalance
+./examples/setup_venv.sh
 ```
 
 ## 🎯 Where to Start

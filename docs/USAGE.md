@@ -10,16 +10,16 @@ The easiest way to run the AWB system is using the provided `run.sh` script:
 
 ```bash
 # Make the script executable (first time only)
-chmod +x run.sh
+chmod +x examples/run.sh
 
-# Run the demo with synthetic data
-./run.sh demo
+# Run basic example
+./examples/run.sh basic
 
 # Test with real RAW data
-./run.sh test
+./examples/run.sh test
 
 # Or use the interactive menu
-./run.sh
+./examples/run.sh
 ```
 
 ### Manual Execution
@@ -27,17 +27,14 @@ chmod +x run.sh
 If you prefer to run scripts manually:
 
 ```bash
-# Activate virtual environment (if available)
-source ../virtual_enviornment/bin/activate  # Or path to your venv
+# Activate virtual environment (required)
+source ../virtual_env/bin/activate
 
-# Run demo
-python3 demo.py
+# Run basic example
+python3 examples/basic_usage.py
 
 # Test with real data
-python3 test_real_data.py
-
-# Run basic system test
-python3 awb_system.py
+python3 tests/test_real_data.py
 ```
 
 ## Real Data Testing Results
@@ -90,7 +87,7 @@ The system has been tested with real RAW10 sensor data:
 
 ### Output Files
 
-After running `test_real_data.py`, the following files are generated in `awb_real_data_results/`:
+After running `tests/test_real_data.py`, the following files are generated in `results/awb_real_data_results/`:
 
 ```
 awb_real_data_results/
@@ -165,7 +162,11 @@ Gains applied directly to Bayer data before debayering for optimal quality.
 ### With Camera Pipeline
 
 ```python
-from awb_system import AutoWhiteBalanceSystem, FrameStatsExtractor
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.awb_system import AutoWhiteBalanceSystem, FrameStatsExtractor
 
 # Initialize
 awb = AutoWhiteBalanceSystem()
@@ -223,10 +224,12 @@ result = awb.process_frame(
 ## Troubleshooting
 
 ### Issue: "Virtual environment not found"
-**Solution**: The script will use system Python. To use a venv:
+**Solution**: Create virtual environment in parent directory:
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+cd ..
+python3 -m venv virtual_env
+source virtual_env/bin/activate
+cd AutoWhiteBalance
 pip install -r requirements.txt
 ```
 
@@ -256,7 +259,7 @@ pip install -r requirements.txt
 ### Custom Analyzer Weights
 
 ```python
-from awb_system import HybridDecisionFusion
+from src.awb_system import HybridDecisionFusion
 
 class CustomFusion(HybridDecisionFusion):
     def fuse(self, results, frame):
@@ -295,7 +298,7 @@ awb._apply_preferences = custom_preferences
 
 ### Synthetic Test Suite
 ```bash
-./run.sh demo
+./examples/run.sh basic
 ```
 Tests various scenarios:
 - Warm/cool/neutral scenes
@@ -306,7 +309,7 @@ Tests various scenarios:
 
 ### Real Data Validation
 ```bash
-./run.sh test
+./examples/run.sh test
 ```
 Tests with actual sensor data:
 - RAW10 format parsing
@@ -318,7 +321,7 @@ Tests with actual sensor data:
 
 - **Main README**: `README.md` - Complete API documentation
 - **This Guide**: `USAGE.md` - Usage examples and real data results
-- **Demo Script**: `demo.py` - Synthetic test scenarios
-- **Real Data Test**: `test_real_data.py` - RAW data processing
+- **Basic Example**: `examples/basic_usage.py` - Simple AWB example
+- **Real Data Test**: `tests/test_real_data.py` - RAW data processing
 
 For questions or issues, please check the documentation or create an issue on GitHub.

@@ -33,7 +33,11 @@ pip install numpy opencv-python scikit-image
 ### Basic Usage
 
 ```python
-from awb_system import AutoWhiteBalanceSystem
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.awb_system import AutoWhiteBalanceSystem
 import cv2
 
 # Initialize AWB system
@@ -56,7 +60,11 @@ print(f"Confidence: {result.trust:.3f}")
 ### Advanced Usage with Custom Analyzers
 
 ```python
-from awb_system import (
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.awb_system import (
     AutoWhiteBalanceSystem, 
     HeuristicAnalyzer, 
     FaceAwareAnalyzer,
@@ -831,7 +839,7 @@ color_corrected_image = apply_ccm(corrected_image, result.ccm)
 ### Synthetic Testing
 
 ```python
-from awb_system import create_test_image
+from src.awb_system import create_test_image
 
 # Create test images with known color characteristics
 warm_image = create_test_image(color_temperature="warm")
@@ -856,7 +864,7 @@ print(f"Estimated FPS: {stats['fps_estimate']:.1f}")
 ### Adding Custom Analyzers
 
 ```python
-from awb_system import AWBAnalyzer, AnalyzerResult
+from src.awb_system import AWBAnalyzer, AnalyzerResult
 
 class CustomAnalyzer(AWBAnalyzer):
     def __init__(self, name: str = "custom"):
@@ -885,7 +893,7 @@ awb_system = AutoWhiteBalanceSystem(analyzers=[custom_analyzer])
 ### Custom Fusion Strategies
 
 ```python
-from awb_system import HybridDecisionFusion
+from src.awb_system import HybridDecisionFusion
 
 class CustomFusion(HybridDecisionFusion):
     def fuse(self, results, frame):

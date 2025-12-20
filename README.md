@@ -13,24 +13,131 @@ This codebase accompanies the computational photography book chapter on Auto Whi
 
 ## 🚀 Quick Start
 
-### Installation
+### Step 1: Installation
+
+The code should run inside a virtual environment located one directory above this project.
+
+**Setup virtual environment:**
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Or use the setup script
+# Option 1: Use the setup script (recommended)
 ./examples/setup_venv.sh
+
+# Option 2: Manual setup
+cd ..
+python3 -m venv virtual_env
+source virtual_env/bin/activate
+cd AutoWhiteBalance
+pip install -r requirements.txt
 ```
 
-### Run Your First Example
+**Expected directory structure:**
+```
+Mobile_Computational_photograph/
+├── virtual_env/          # Virtual environment (created here)
+└── AutoWhiteBalance/     # This project
+    ├── src/
+    ├── examples/
+    └── ...
+```
+
+### Step 2: Running the Code
+
+**Activate virtual environment:**
+```bash
+source ../virtual_env/bin/activate
+```
+
+**Run your first example:**
 
 ```bash
-# Test with real RAW sensor data
-python tests/test_real_data.py
+# Option 1: Use runner script (auto-activates venv)
+./examples/run.sh basic
 
-# Or use the runner script
+# Option 2: Manual execution
+source ../virtual_env/bin/activate
+python3 examples/basic_usage.py
+```
+
+**Test with real RAW data:**
+
+```bash
+# Using runner script
 ./examples/run.sh test
+
+# Or manually
+source ../virtual_env/bin/activate
+python3 tests/test_real_data.py
+```
+
+## 🚀 Running the Code
+
+### Step 1: Activate Virtual Environment
+
+**Important:** Always activate the virtual environment before running any code:
+
+```bash
+# From AutoWhiteBalance directory
+source ../virtual_env/bin/activate
+```
+
+You should see `(virtual_env)` in your terminal prompt when activated.
+
+### Step 2: Run Examples
+
+**Option A: Use the Runner Script (Recommended)**
+
+The runner script automatically activates the virtual environment:
+
+```bash
+# Make script executable (first time only)
+chmod +x examples/run.sh
+
+# Run basic example
+./examples/run.sh basic
+
+# Test with real RAW sensor data
+./examples/run.sh test
+
+# Interactive menu
+./examples/run.sh
+```
+
+**Option B: Run Scripts Directly**
+
+```bash
+# Activate virtual environment first
+source ../virtual_env/bin/activate
+
+# Run basic example
+python3 examples/basic_usage.py
+
+# Test with real RAW sensor data
+python3 tests/test_real_data.py
+```
+
+### Step 3: View Results
+
+After running, check the results:
+
+```bash
+# Basic example results
+ls results/basic_example/
+
+# Real data test results
+ls results/awb_real_data_results/
+```
+
+### Quick Test
+
+To verify everything works:
+
+```bash
+# Activate venv
+source ../virtual_env/bin/activate
+
+# Quick test
+python3 -c "from src.awb_system import AutoWhiteBalanceSystem; print('✓ AWB system ready!')"
 ```
 
 ## 📖 Documentation Structure
@@ -176,8 +283,15 @@ See `results/awb_real_data_results/` for visual comparisons.
 ### Basic Usage
 
 ```python
-from src.awb_system import AutoWhiteBalanceSystem
+import sys
+import os
 import cv2
+import numpy as np
+
+# Add project root to path
+sys.path.insert(0, os.path.dirname(__file__) or '.')
+
+from src.awb_system import AutoWhiteBalanceSystem
 
 # Initialize
 awb = AutoWhiteBalanceSystem()
@@ -187,10 +301,11 @@ image = cv2.imread('photo.jpg')
 result = awb.process_frame(image, bv=5.0, scene="portrait")
 
 # Apply correction
-corrected = image.copy()
+corrected = image.copy().astype(np.float32)
 corrected[:, :, 0] *= result.gains[2]  # Blue
-corrected[:, :, 1] *= result.gains[1]    # Green
+corrected[:, :, 1] *= result.gains[1]   # Green
 corrected[:, :, 2] *= result.gains[0]   # Red
+corrected = np.clip(corrected, 0, 255).astype(np.uint8)
 
 print(f"Gains: {result.gains}")
 print(f"CCT: {result.cct:.1f}K")
@@ -199,7 +314,15 @@ print(f"CCT: {result.cct:.1f}K")
 ### Custom Analyzers
 
 ```python
-from src.awb_system import HeuristicAnalyzer, FaceAwareAnalyzer
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__) or '.')
+
+from src.awb_system import (
+    AutoWhiteBalanceSystem,
+    HeuristicAnalyzer, 
+    FaceAwareAnalyzer
+)
 
 # Use only specific analyzers
 analyzers = [

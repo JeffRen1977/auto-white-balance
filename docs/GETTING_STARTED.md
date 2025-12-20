@@ -4,30 +4,73 @@ Welcome! This guide will help you get started with the AWB system quickly.
 
 ## Installation
 
-### Step 1: Install Dependencies
+### Step 1: Setup Virtual Environment
 
+The code should run inside a virtual environment located one directory above this project.
+
+**Expected structure:**
+```
+Mobile_Computational_photograph/
+├── virtual_env/          # Virtual environment (create here)
+└── AutoWhiteBalance/     # This project
+```
+
+**Setup options:**
+
+**Option A: Use setup script (recommended)**
 ```bash
+./examples/setup_venv.sh
+```
+
+**Option B: Manual setup**
+```bash
+# Go to parent directory
+cd ..
+
+# Create virtual environment
+python3 -m venv virtual_env
+
+# Activate it
+source virtual_env/bin/activate
+
+# Go back to project
+cd AutoWhiteBalance
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-Required packages:
+### Step 2: Verify Installation
+
+```bash
+# Make sure virtual environment is activated
+source ../virtual_env/bin/activate
+
+# Verify packages
+python -c "import numpy, cv2; print('✓ Dependencies installed')"
+```
+
+**Required packages:**
 - `numpy` - Numerical computations
 - `opencv-python` - Image processing
 - `scikit-image` - Additional image utilities (optional)
 
-### Step 2: Verify Installation
-
-```python
-python -c "import numpy, cv2; print('✓ Dependencies installed')"
-```
-
 ## Quick Start
+
+**Important:** Always activate the virtual environment first:
+
+```bash
+source ../virtual_env/bin/activate
+```
 
 ### Option 1: Run Basic Example
 
 ```bash
-cd examples
-python basic_usage.py
+# Activate virtual environment
+source ../virtual_env/bin/activate
+
+# Run example
+python examples/basic_usage.py
 ```
 
 This will:
@@ -38,8 +81,11 @@ This will:
 ### Option 2: Test with Real RAW Data
 
 ```bash
-cd tests
-python test_real_data.py
+# Activate virtual environment
+source ../virtual_env/bin/activate
+
+# Run test
+python tests/test_real_data.py
 ```
 
 This will:
@@ -48,10 +94,17 @@ This will:
 - Generate comparison images
 - Save detailed results
 
-### Option 3: Use the Runner Script
+### Option 3: Use the Runner Script (Recommended)
+
+The runner script automatically activates the virtual environment:
 
 ```bash
 ./examples/run.sh test
+```
+
+Or for basic example:
+```bash
+./examples/run.sh basic
 ```
 
 ## Understanding the Output
@@ -97,6 +150,11 @@ Confidence in the AWB decision (0.0 to 1.0):
 
 ## Your First AWB Correction
 
+**Before running:** Make sure virtual environment is activated:
+```bash
+source ../virtual_env/bin/activate
+```
+
 ### Simple Python Script
 
 ```python
@@ -104,7 +162,7 @@ import cv2
 import sys
 import os
 
-# Add path
+# Add path to import awb_system
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from src.awb_system import AutoWhiteBalanceSystem
 

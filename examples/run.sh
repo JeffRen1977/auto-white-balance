@@ -19,13 +19,15 @@ echo -e "==========================================${NC}"
 echo ""
 
 # Find the virtual environment
+# Expected location: ../virtual_env (one directory above AutoWhiteBalance)
 VENV_PATH=""
 VENV_FOUND=false
 
-# Check common venv locations
+# Check venv locations (prioritize ../virtual_env)
 VENV_LOCATIONS=(
+    "$(dirname "$PROJECT_ROOT")/virtual_env"  # Primary location
     "$PROJECT_ROOT/venv"
-    "$PROJECT_ROOT/virtual_enviornment"
+    "$PROJECT_ROOT/virtual_env"
     "$(dirname "$PROJECT_ROOT")/venv"
     "$(dirname "$PROJECT_ROOT")/virtual_enviornment"
 )
@@ -52,12 +54,17 @@ if [ "$VENV_FOUND" = true ]; then
         echo "Continuing with system Python..."
     fi
 else
-    echo -e "${BLUE}No virtual environment found in common locations${NC}"
-    echo "Using system Python installation..."
-    echo "To use a virtual environment, create one with:"
-    echo "  python3 -m venv venv"
-    echo "  source venv/bin/activate"
+    echo -e "${BLUE}No virtual environment found${NC}"
+    echo "Expected location: $(dirname "$PROJECT_ROOT")/virtual_env"
+    echo ""
+    echo "To create the virtual environment:"
+    echo "  cd $(dirname "$PROJECT_ROOT")"
+    echo "  python3 -m venv virtual_env"
+    echo "  source virtual_env/bin/activate"
+    echo "  cd AutoWhiteBalance"
     echo "  pip install -r requirements.txt"
+    echo ""
+    echo "Using system Python installation for now..."
 fi
 
 echo ""
