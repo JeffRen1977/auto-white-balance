@@ -9,6 +9,10 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Get script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 echo -e "${BLUE}=========================================="
 echo "Auto White Balance System - Runner"
 echo -e "==========================================${NC}"
@@ -20,14 +24,10 @@ VENV_FOUND=false
 
 # Check common venv locations
 VENV_LOCATIONS=(
-    "./venv"
-    "./virtual_enviornment"
-    "../venv"
-    "../virtual_enviornment"
-    "../../venv"
-    "../../virtual_enviornment"
-    "../../../venv"
-    "../../../virtual_enviornment"
+    "$PROJECT_ROOT/venv"
+    "$PROJECT_ROOT/virtual_enviornment"
+    "$(dirname "$PROJECT_ROOT")/venv"
+    "$(dirname "$PROJECT_ROOT")/virtual_enviornment"
 )
 
 for venv_loc in "${VENV_LOCATIONS[@]}"; do
@@ -62,16 +62,16 @@ fi
 
 echo ""
 
+# Change to project root
+cd "$PROJECT_ROOT"
+
 # Check which script to run
-if [ "$1" == "demo" ]; then
-    echo "Running demo..."
-    python3 demo.py
+if [ "$1" == "basic" ] || [ "$1" == "example" ]; then
+    echo "Running basic usage example..."
+    python3 examples/basic_usage.py
 elif [ "$1" == "test" ] || [ "$1" == "real" ]; then
     echo "Running real data test..."
-    python3 test_real_data.py
-elif [ "$1" == "system" ]; then
-    echo "Running basic system test..."
-    python3 awb_system.py
+    python3 tests/test_real_data.py
 elif [ -n "$1" ]; then
     # Run custom script
     echo "Running custom script: $1"
@@ -81,44 +81,37 @@ else
     echo "Usage: ./run.sh [option]"
     echo ""
     echo "Options:"
-    echo "  demo     - Run synthetic demo"
+    echo "  basic    - Run basic usage example"
     echo "  test     - Test with real RAW data"
     echo "  real     - Test with real RAW data (same as test)"
-    echo "  system   - Run basic system test"
     echo "  [file]   - Run custom Python file"
     echo ""
     echo "Example:"
-    echo "  ./run.sh demo"
+    echo "  ./run.sh basic"
     echo "  ./run.sh test"
     echo "  ./run.sh my_script.py"
     echo ""
     
     # Interactive menu
     echo "Select an option:"
-    echo "  1) Run demo"
+    echo "  1) Run basic usage example"
     echo "  2) Test with real RAW data"
-    echo "  3) Run basic system test"
-    echo "  4) Exit"
+    echo "  3) Exit"
     echo ""
-    read -p "Enter your choice [1-4]: " choice
+    read -p "Enter your choice [1-3]: " choice
     
     case $choice in
         1)
             echo ""
-            echo "Running demo..."
-            python3 demo.py
+            echo "Running basic usage example..."
+            python3 examples/basic_usage.py
             ;;
         2)
             echo ""
             echo "Running real data test..."
-            python3 test_real_data.py
+            python3 tests/test_real_data.py
             ;;
         3)
-            echo ""
-            echo "Running basic system test..."
-            python3 awb_system.py
-            ;;
-        4)
             echo "Exiting..."
             exit 0
             ;;
@@ -142,4 +135,3 @@ else
     echo -e "==========================================${NC}"
     exit 1
 fi
-

@@ -5,11 +5,16 @@ This script processes real RAW10 sensor data and applies AWB corrections.
 The RAW file contains: RAW10_4032x756 sensor data
 """
 
+import sys
+import os
 import numpy as np
 import cv2
-import os
 import json
-from awb_system import (
+
+# Add parent directory to path to import awb_system
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.awb_system import (
     AutoWhiteBalanceSystem,
     FrameStatsExtractor,
     HeuristicAnalyzer,
@@ -272,25 +277,32 @@ def main():
     print("AUTO WHITE BALANCE SYSTEM - REAL DATA TEST")
     print("=" * 70)
     
-    # Find all RAW files in current directory
-    current_dir = os.path.dirname(__file__) or '.'
-    raw_files = [f for f in os.listdir(current_dir) if f.endswith('.raw')]
+    # Find all RAW files in data directory
+    script_dir = os.path.dirname(__file__)
+    data_dir = os.path.join(script_dir, '..', 'data')
+    data_dir = os.path.abspath(data_dir)
+    
+    if not os.path.exists(data_dir):
+        print(f"ERROR: Data directory not found: {data_dir}")
+        return
+    
+    raw_files = [f for f in os.listdir(data_dir) if f.endswith('.raw')]
     
     if not raw_files:
         print(f"ERROR: No RAW files found in {current_dir}")
         return
     
     # Sort by modification time (newest first)
-    raw_files.sort(key=lambda f: os.path.getmtime(os.path.join(current_dir, f)), reverse=True)
+    raw_files.sort(key=lambda f: os.path.getmtime(os.path.join(data_dir, f)), reverse=True)
     
-    print(f"\nFound {len(raw_files)} RAW file(s):")
+    print(f"\nFound {len(raw_files)} RAW file(s) in {data_dir}:")
     for i, f in enumerate(raw_files, 1):
-        size_mb = os.path.getsize(os.path.join(current_dir, f)) / (1024 * 1024)
+        size_mb = os.path.getsize(os.path.join(data_dir, f)) / (1024 * 1024)
         print(f"  {i}. {f} ({size_mb:.1f} MB)")
     
     # Use the newest/first file
     raw_filename = raw_files[0]
-    raw_filepath = os.path.join(current_dir, raw_filename)
+    raw_filepath = os.path.join(data_dir, raw_filename)
     
     print(f"\nUsing: {raw_filename}")
     
@@ -391,7 +403,9 @@ def main():
     corrected_rgb = debayer_image(corrected_raw, pattern='RGGB')
     
     # Save results
-    output_dir = "awb_real_data_results"
+    script_dir = os.path.dirname(__file__)
+    output_dir = os.path.join(script_dir, '..', 'results', 'awb_real_data_results')
+    output_dir = os.path.abspath(output_dir)
     os.makedirs(output_dir, exist_ok=True)
     
     print(f"\nSaving results to {output_dir}/...")
