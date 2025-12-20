@@ -71,10 +71,13 @@ def parse_raw_filename(filename):
 
 def read_raw10_data(filepath, width, height, row_stride=None):
     """
-    Read RAW10 format data.
+    Read RAW10 format data with proper row stride handling.
     
     RAW10 format: 4 pixels packed into 5 bytes
     Each 4 pixels use 5 bytes: [P0_high][P1_high][P2_high][P3_high][P0P1P2P3_low]
+    
+    Row Stride: The actual bytes allocated per row (may include padding)
+                If row_stride > bytes_per_row, there are padding bytes to skip
     """
     print(f"\nReading RAW10 data from: {filepath}")
     
@@ -84,69 +87,80 @@ def read_raw10_data(filepath, width, height, row_stride=None):
     file_size = os.path.getsize(filepath)
     print(f"File size: {file_size} bytes")
     
-    if row_stride is None:
-        row_stride = width
+    # Calculate bytes needed per row for RAW10 format
+    # RAW10: 4 pixels packed into 5 bytes, so width pixels = (width * 10 + 7) // 8 bytes
+    bytes_per_row = (width * 10 + 7) // 8  # Ceiling division for packed RAW10
     
-    # RAW10: 4 pixels packed into 5 bytes
-    # So for each row, we need (width * 10 / 8) bytes = width * 1.25 bytes
-    bytes_per_row = (width * 10 + 7) // 8  # Ceiling division
-    expected_size = bytes_per_row * height
+    # Row stride: actual bytes allocated per row (includes padding if any)
+    # In camera systems, row_stride is typically in bytes and may include alignment/padding
+    if row_stride is None:
+        row_stride_bytes = bytes_per_row  # No padding if not specified
+    else:
+        # row_stride from metadata is typically in bytes already
+        # If it seems too small, it might be in pixels (convert to bytes)
+        if row_stride < width:
+            # Assume it's in pixels, convert to bytes
+            row_stride_bytes = (row_stride * 10 + 7) // 8
+        elif row_stride < bytes_per_row:
+            # Too small to be valid, use calculated value
+            row_stride_bytes = bytes_per_row
+        else:
+            # row_stride is in bytes (most common case)
+            row_stride_bytes = row_stride
+    
+    row_stride = row_stride_bytes
+    
+    padding_per_row = row_stride - bytes_per_row
     
     print(f"Image dimensions: {width}x{height}")
-    print(f"Row stride: {row_stride}")
-    print(f"Bytes per row (RAW10): {bytes_per_row}")
-    print(f"Expected data size: {expected_size} bytes")
+    print(f"Row stride: {row_stride} bytes")
+    print(f"Bytes per row (RAW10 packed): {bytes_per_row} bytes")
+    print(f"Padding per row: {padding_per_row} bytes")
     
     # Read raw bytes
     with open(filepath, 'rb') as f:
         raw_bytes = np.frombuffer(f.read(), dtype=np.uint8)
     
     print(f"Actual data size: {len(raw_bytes)} bytes")
+    print(f"Expected with stride: {row_stride * height} bytes")
     
-    # Unpack RAW10 to 10-bit values
-    # Process in chunks of 5 bytes -> 4 pixels
-    num_pixels = width * height
-    num_chunks = (num_pixels + 3) // 4  # Number of 5-byte chunks needed
+    # Initialize output array (height x width)
+    image_data = np.zeros((height, width), dtype=np.uint16)
     
-    # Initialize output array
-    pixels = np.zeros(num_pixels, dtype=np.uint16)
+    # Process each row separately to handle row stride padding
+    byte_offset = 0
     
-    # Unpack RAW10 format
-    chunk_idx = 0
-    pixel_idx = 0
-    
-    while pixel_idx < num_pixels and (chunk_idx * 5 + 4) < len(raw_bytes):
-        offset = chunk_idx * 5
+    for row in range(height):
+        if byte_offset + bytes_per_row > len(raw_bytes):
+            print(f"Warning: Row {row} exceeds file size")
+            break
         
-        # Read 5 bytes
-        if offset + 4 < len(raw_bytes):
-            b0 = raw_bytes[offset]
-            b1 = raw_bytes[offset + 1]
-            b2 = raw_bytes[offset + 2]
-            b3 = raw_bytes[offset + 3]
-            b4 = raw_bytes[offset + 4]
+        # Extract one row's data (skip padding if any)
+        row_bytes = raw_bytes[byte_offset:byte_offset + bytes_per_row]
+        
+        # Unpack this row: process in chunks of 5 bytes -> 4 pixels
+        pixels_in_row = []
+        for i in range(0, len(row_bytes) - 4, 5):  # Step by 5 bytes
+            if i + 4 >= len(row_bytes):
+                break
+            
+            b0, b1, b2, b3, b4 = row_bytes[i], row_bytes[i+1], row_bytes[i+2], row_bytes[i+3], row_bytes[i+4]
             
             # Reconstruct 4 10-bit pixels
-            # Each pixel = 8 high bits + 2 low bits
-            if pixel_idx < num_pixels:
-                pixels[pixel_idx] = (b0 << 2) | ((b4 >> 0) & 0x03)
-                pixel_idx += 1
-            if pixel_idx < num_pixels:
-                pixels[pixel_idx] = (b1 << 2) | ((b4 >> 2) & 0x03)
-                pixel_idx += 1
-            if pixel_idx < num_pixels:
-                pixels[pixel_idx] = (b2 << 2) | ((b4 >> 4) & 0x03)
-                pixel_idx += 1
-            if pixel_idx < num_pixels:
-                pixels[pixel_idx] = (b3 << 2) | ((b4 >> 6) & 0x03)
-                pixel_idx += 1
+            # Each pixel = 8 high bits + 2 low bits from b4
+            pixels_in_row.append((b0 << 2) | ((b4 >> 0) & 0x03))  # Pixel 0
+            pixels_in_row.append((b1 << 2) | ((b4 >> 2) & 0x03))  # Pixel 1
+            pixels_in_row.append((b2 << 2) | ((b4 >> 4) & 0x03))  # Pixel 2
+            pixels_in_row.append((b3 << 2) | ((b4 >> 6) & 0x03))  # Pixel 3
         
-        chunk_idx += 1
+        # Store pixels for this row (only width pixels)
+        num_pixels = min(len(pixels_in_row), width)
+        image_data[row, :num_pixels] = pixels_in_row[:num_pixels]
+        
+        # Move to next row (skip padding if any)
+        byte_offset += row_stride
     
-    # Reshape to image dimensions
-    image_data = pixels[:width * height].reshape((height, width))
-    
-    print(f"Successfully unpacked {pixel_idx} pixels")
+    print(f"Successfully unpacked {height} rows")
     print(f"Image shape: {image_data.shape}")
     print(f"Pixel value range: [{image_data.min()}, {image_data.max()}]")
     print(f"Mean pixel value: {image_data.mean():.2f}")
@@ -155,35 +169,55 @@ def read_raw10_data(filepath, width, height, row_stride=None):
 
 def debayer_image(raw_image, pattern='RGGB'):
     """
-    Simple debayer (demosaic) for Bayer pattern data using OpenCV.
+    Debayer (demosaic) Bayer pattern data using OpenCV.
     
     Args:
-        raw_image: Raw sensor data (H x W)
+        raw_image: Raw sensor data (H x W, uint16, typically 0-1023 for 10-bit)
         pattern: Bayer pattern ('RGGB', 'BGGR', 'GRBG', 'GBRG')
+                 RGGB pattern layout:
+                 Row 0: R G R G R G ...
+                 Row 1: G B G B G B ...
     
     Returns:
-        RGB image (H x W x 3)
+        RGB image (H x W x 3, float32, 0-1023 range)
     """
-    # Normalize to 8-bit for OpenCV debayering
-    raw_8bit = (raw_image / 1023.0 * 255).astype(np.uint8)
-    
-    # Use OpenCV's debayering
-    if pattern == 'RGGB':
-        color_code = cv2.COLOR_BayerBG2BGR
-    elif pattern == 'BGGR':
-        color_code = cv2.COLOR_BayerRG2BGR
-    elif pattern == 'GRBG':
-        color_code = cv2.COLOR_BayerGB2BGR
-    elif pattern == 'GBRG':
-        color_code = cv2.COLOR_BayerGR2BGR
+    # Detect actual bit depth from image data
+    max_val = raw_image.max()
+    if max_val > 4095:
+        bit_depth = 16
+        max_value = 65535
+    elif max_val > 1023:
+        bit_depth = 12
+        max_value = 4095
     else:
-        color_code = cv2.COLOR_BayerBG2BGR
+        bit_depth = 10
+        max_value = 1023
     
-    # Debayer
+    print(f"Detected bit depth: {bit_depth}-bit (max value: {max_val})")
+    
+    # Normalize to 8-bit for OpenCV debayering
+    # OpenCV's debayering functions work on 8-bit images
+    raw_8bit = np.clip((raw_image.astype(np.float32) / max_value * 255.0), 0, 255).astype(np.uint8)
+    
+    # OpenCV color code mapping:
+    # COLOR_BayerXX2BGR means: input pattern is XX, output is BGR
+    # So for RGGB input, we use COLOR_BayerRG2BGR
+    pattern_to_code = {
+        'RGGB': cv2.COLOR_BayerRG2BGR,  # RGGB input -> BGR output
+        'BGGR': cv2.COLOR_BayerBG2BGR,  # BGGR input -> BGR output
+        'GRBG': cv2.COLOR_BayerGR2BGR,  # GRBG input -> BGR output
+        'GBRG': cv2.COLOR_BayerGB2BGR,  # GBRG input -> BGR output
+    }
+    
+    color_code = pattern_to_code.get(pattern, cv2.COLOR_BayerRG2BGR)
+    
+    # Debayer using OpenCV (outputs BGR format)
     bgr_image = cv2.cvtColor(raw_8bit, color_code)
     
-    # Convert back to float and scale to 10-bit range
-    rgb_image = bgr_image.astype(np.float32) / 255.0 * 1023.0
+    # Convert back to original bit depth range and RGB format
+    # OpenCV outputs BGR, we need RGB, so reverse channels
+    rgb_image = bgr_image[:, :, ::-1].astype(np.float32)  # BGR -> RGB
+    rgb_image = rgb_image / 255.0 * max_value  # Scale back to original range
     
     return rgb_image
 
@@ -263,13 +297,40 @@ def apply_awb_to_raw(raw_image, gains, pattern='RGGB'):
     return corrected.astype(np.uint16)
 
 def save_rgb_image(rgb_image, filename, bit_depth=10):
-    """Save RGB image to file."""
-    # Normalize to 8-bit for display
-    max_value = (2 ** bit_depth) - 1
-    rgb_8bit = (rgb_image / max_value * 255).astype(np.uint8)
+    """
+    Save RGB image to file with proper normalization.
     
-    cv2.imwrite(filename, rgb_8bit)
+    Args:
+        rgb_image: RGB image (H x W x 3, float32)
+        filename: Output filename
+        bit_depth: Bit depth for normalization (default: 10 for 10-bit images)
+    """
+    # Detect actual max value from image data
+    img_max = rgb_image.max()
+    if img_max > 1023:
+        # Auto-detect bit depth from actual data
+        if img_max > 4095:
+            max_value = 65535  # 16-bit
+        else:
+            max_value = 4095   # 12-bit
+    else:
+        max_value = 1023       # 10-bit
+    
+    # Normalize to 8-bit for JPEG display
+    # Ensure values are in valid range
+    rgb_normalized = np.clip(rgb_image, 0, max_value)
+    rgb_8bit = (rgb_normalized / max_value * 255.0).astype(np.uint8)
+    
+    # OpenCV uses BGR format for saving, so convert RGB -> BGR
+    bgr_8bit = rgb_8bit[:, :, ::-1]  # Reverse channels: RGB -> BGR
+    
+    cv2.imwrite(filename, bgr_8bit)
+    
+    # Print statistics for verification
     print(f"Saved: {filename}")
+    print(f"  Image shape: {rgb_image.shape}")
+    print(f"  Value range: [{rgb_image.min():.1f}, {rgb_image.max():.1f}]")
+    print(f"  Normalized range: [{rgb_8bit.min()}, {rgb_8bit.max()}]")
 
 def main():
     """
