@@ -2,7 +2,7 @@
 
 A comprehensive implementation of Auto White Balance (AWB) for computational photography, designed for educational purposes and production use.
 
-## 📚 For Book Readers
+## 📚 For Book Readers: mobible computational photograph
 
 This codebase accompanies the computational photography book chapter on Auto White Balance. It provides:
 
