@@ -2,9 +2,9 @@
 
 A comprehensive implementation of Auto White Balance (AWB) for computational photography, designed for educational purposes and production use.
 
-## 📚 For Book Readers: mobible computational photograph
+## 📚 For Book Readers: Chapter 7 of "Mobile Computational Photography"
 
-This codebase accompanies the computational photography book chapter on Auto White Balance. It provides:
+This codebase accompanies **Chapter 7** of "Mobile Computational Photography" on Auto White Balance. It provides:
 
 - **Complete AWB implementation** with multiple algorithms
 - **Real-world examples** using actual sensor data
@@ -144,12 +144,15 @@ python3 -c "from src.awb_system import AutoWhiteBalanceSystem; print('✓ AWB sy
 
 ```
 docs/
-├── README.md              # This file - main overview
-├── INTRODUCTION.md         # What is White Balance?
-├── TUTORIAL.md            # Step-by-step tutorial
-├── ALGORITHMS.md          # AWB algorithm explanations
-├── API_REFERENCE.md       # Complete API documentation
-└── EXAMPLES.md            # Code examples and use cases
+├── README.md                  # Documentation overview
+├── INTRODUCTION.md            # What is White Balance?
+├── GETTING_STARTED.md         # Setup and first steps
+├── TUTORIAL.md                # Step-by-step tutorial
+├── USAGE.md                   # Detailed usage guide
+├── CODE_ORGANIZATION.md       # Code structure explanation
+├── CHAPTER_7_AWB_SYSTEM.md    # Book chapter mapping
+├── TEST_RESULTS.md            # Test results and analysis
+└── DOCUMENTATION_REVIEW.md    # Documentation review notes
 ```
 
 **Start here**: Read `docs/INTRODUCTION.md` to understand white balance concepts.
@@ -170,9 +173,10 @@ AutoWhiteBalance/
 │   └── *.raw             # RAW sensor data files
 ├── docs/                  # Documentation
 │   ├── INTRODUCTION.md   # White balance concepts
+│   ├── GETTING_STARTED.md # Setup and first steps
 │   ├── TUTORIAL.md       # Step-by-step guide
-│   ├── ALGORITHMS.md     # Algorithm details
-│   └── API_REFERENCE.md  # API documentation
+│   ├── USAGE.md          # Detailed usage guide
+│   └── CHAPTER_7_AWB_SYSTEM.md  # Book chapter mapping
 ├── results/               # Output results
 │   └── awb_real_data_results/  # Test outputs
 └── requirements.txt       # Python dependencies
@@ -361,10 +365,11 @@ Confidence in the AWB decision (0.0 to 1.0):
 ## 📚 Further Reading
 
 - **Introduction**: `docs/INTRODUCTION.md` - White balance fundamentals
+- **Getting Started**: `docs/GETTING_STARTED.md` - Setup and first steps
 - **Tutorial**: `docs/TUTORIAL.md` - Build your own AWB
-- **Algorithms**: `docs/ALGORITHMS.md` - Algorithm deep dive
-- **API Reference**: `docs/API_REFERENCE.md` - Complete API docs
-- **Examples**: `docs/EXAMPLES.md` - More code examples
+- **Usage Guide**: `docs/USAGE.md` - Detailed usage guide
+- **Code Organization**: `docs/CODE_ORGANIZATION.md` - Code structure explanation
+- **Chapter Mapping**: `docs/CHAPTER_7_AWB_SYSTEM.md` - Book chapter reference
 
 ## 🧪 Testing
 
