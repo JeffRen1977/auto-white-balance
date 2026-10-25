@@ -68,6 +68,13 @@ source ../virtual_env/bin/activate
 python3 tests/test_real_data.py
 ```
 
+**Run unit tests:**
+
+```bash
+source ../virtual_env/bin/activate
+python3 -m pytest tests/ -v
+```
+
 ## 🚀 Running the Code
 
 ### Step 1: Activate Virtual Environment
