@@ -24,17 +24,15 @@ The code should run inside a virtual environment located one directory above thi
 ./examples/setup_venv.sh
 
 # Option 2: Manual setup
-cd ..
-python3 -m venv virtual_env
-source virtual_env/bin/activate
-cd AutoWhiteBalance
+python3 -m venv ../virtual_env
+source ../virtual_env/bin/activate
 pip install -r requirements.txt
 ```
 
 **Expected directory structure:**
 ```
 Mobile_Computational_photograph/
-├── virtual_env/          # Virtual environment (created here)
+├── virtual_env/          # Shared virtual environment
 └── AutoWhiteBalance/     # This project
     ├── src/
     ├── examples/
